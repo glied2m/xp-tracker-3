@@ -29,36 +29,39 @@ daily_log = load_json(DAILY_LOG_FILE, {})  # Format: {"YYYY-MM-DD": ["Kategorie_
 # --- Streamlit Setup ---
 st.set_page_config(page_title="Task XP Tracker", layout="wide")
 
-# --- Datumsauswahl ---
+# --- Sidebar: Datum & Save ---
+st.sidebar.title("Einstellungen")
 today = datetime.date.today()
 selected_date = st.sidebar.date_input("Datum auswählen", value=today)
 selected_str = selected_date.isoformat()
 
-# --- Session State Initialisierung ---
 if "completed" not in st.session_state:
     st.session_state["completed"] = set(daily_log.get(selected_str, []))
 
-# --- Kopf mit Speichern-Button ---
-st.title("📋 Task XP Tracker")
-if st.button("💾 Alles speichern"):
+if st.sidebar.button("💾 Alles speichern"):
     daily_log[selected_str] = sorted(st.session_state["completed"])
     save_json(DAILY_LOG_FILE, daily_log)
-    st.success(f"Status für {selected_date:%d.%m.%Y} gespeichert!")
+    st.sidebar.success(f"Status für {selected_date:%d.%m.%Y} gespeichert!")
 
-# --- Task-Anzeige ---
-st.header(f"Aufgaben für {selected_date:%d.%m.%Y}")
+# --- Hauptbereich ---
+st.title("📋 Task XP Tracker")
+st.caption(f"Aufgaben für {selected_date:%d.%m.%Y}")
+
+# --- Tasks mit Expandern ---
 for cat, items in tasks_data.items():
-    st.subheader(cat)
-    for i, task in enumerate(items):
-        key = f"{cat}_{i}"
-        checked = key in st.session_state["completed"]
-        new = st.checkbox(f"{task['task']} (+{task['xp']} XP)", value=checked, key=key)
-        if new and not checked:
-            st.session_state["completed"].add(key)
-        if not new and checked:
-            st.session_state["completed"].remove(key)
+    with st.expander(f"{cat} ({len(items)})", expanded=False):
+        cols = st.columns(2)
+        for idx, task in enumerate(items):
+            key = f"{cat}_{idx}"
+            checked = key in st.session_state["completed"]
+            col = cols[idx % 2]
+            new = col.checkbox(f"{task['task']} (+{task['xp']} XP)", value=checked, key=key)
+            if new and not checked:
+                st.session_state["completed"].add(key)
+            if not new and checked:
+                st.session_state["completed"].remove(key)
 
-# --- XP-Berechnung ---
+# --- XP-Berechnung & Statistik ---
 def calc_xp(date_str):
     xp = 0
     for key in daily_log.get(date_str, []):
@@ -66,18 +69,17 @@ def calc_xp(date_str):
         xp += tasks_data.get(cat, [])[int(idx)]["xp"]
     return xp
 
-# --- Historie Tabelle ---
-st.header("📊 XP Historie")
+st.header("📊 XP Historie (letzte 30 Tage)")
 dates = [today - datetime.timedelta(days=i) for i in range(30)]
 hist = [{"Datum": d, "XP": calc_xp(d.isoformat())} for d in sorted(dates)]
-df_hist = pd.DataFrame(hist).set_index("Datum")
+=df_hist = pd.DataFrame(hist).set_index("Datum")
 st.dataframe(df_hist, use_container_width=True)
 
 # --- JSON-Editor unten ---
 st.markdown("---")
 st.header("🛠️ Aufgaben-Datei (tasks.json)")
 tasks_json = json.dumps(tasks_data, ensure_ascii=False, indent=2)
-new_tasks_json = st.text_area("Bearbeite Kategorien & Tasks", tasks_json, height=300)
+new_tasks_json = st.text_area("Bearbeite Kategorien & Tasks (JSON):", tasks_json, height=300)
 if st.button("📂 tasks.json speichern"):
     try:
         parsed = json.loads(new_tasks_json)
