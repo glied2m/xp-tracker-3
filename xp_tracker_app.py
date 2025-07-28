@@ -88,8 +88,24 @@ hist = []
 for i in range(29, -1, -1):
     d = today - datetime.timedelta(days=i)
     date_str = d.isoformat()
-    count = len(daily_log.get(date_str, []))
-    hist.append({"Datum": d.strftime("%d.%m.%Y"), "Erledigte Aufgaben": count})
+    # Anzahl erledigter Aufgaben
+    keys = daily_log.get(date_str, [])
+    count = len(keys)
+    # Summe der XP für diesen Tag
+    xp_sum = 0
+    for key in keys:
+        parts = key.split("_")
+        # Identify if weekly subcategory includes day
+        if parts[0] == "Wochenplan":
+            # Wochenplan_{Tag}_{idx}_{date}
+            _, day, idx, _ = parts
+            task = tasks_data.get("Wochenplan", {}).get(day, [])[int(idx)]
+        else:
+            cat = parts[0]
+            idx = parts[1]
+            task = tasks_data.get(cat, [])[int(idx)]
+        xp_sum += task.get("xp", 0)
+    hist.append({"Datum": d.strftime("%d.%m.%Y"), "Erledigte Aufgaben": count, "XP gesamt": xp_sum})
 df_hist = pd.DataFrame(hist).set_index("Datum")
 st.dataframe(df_hist, use_container_width=True)
 
