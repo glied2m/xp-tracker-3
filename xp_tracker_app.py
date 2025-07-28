@@ -72,7 +72,8 @@ def calc_xp(date_str):
 st.header("📊 XP Historie (letzte 30 Tage)")
 dates = [today - datetime.timedelta(days=i) for i in range(30)]
 hist = [{"Datum": d, "XP": calc_xp(d.isoformat())} for d in sorted(dates)]
-=df_hist = pd.DataFrame(hist).set_index("Datum")
+# Korrigierte Zuweisung ohne führendes '='
+df_hist = pd.DataFrame(hist).set_index("Datum")
 st.dataframe(df_hist, use_container_width=True)
 
 # --- JSON-Editor unten ---
