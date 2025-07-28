@@ -1,0 +1,27 @@
+
+{
+  "Morgenroutine": [
+    { "task": "Aufstehen, Lüften & Licht an", "xp": 1 },
+    { "task": "Toilette, Gesicht waschen oder duschen", "xp": 1 },
+    { "task": "Zähne putzen (morgens)", "xp": 5 },
+    { "task": "Aknemycin Plus auftragen", "xp": 5 },
+    { "task": "10 Minuten warten (Sonnencreme Erinnerung)", "xp": 1 },
+    { "task": "Sonnencreme auftragen", "xp": 5 },
+    { "task": "Minoxidil (morgens)", "xp": 2 },
+    { "task": "Lisdexamphetamin nehmen (falls aktiv)", "xp": 3 },
+    { "task": "Frühstück & Wasser", "xp": 5 },
+    { "task": "Anziehen", "xp": 2 },
+    { "task": "Wohnung kurz ordnen (Kissen, Tisch etc.)", "xp": 1 }
+  ],
+  "Abendroutine": [
+    { "task": "Zähne putzen (abends)", "xp": 5 },
+    { "task": "Minoxidil (abends)", "xp": 2 },
+    { "task": "Aknemycin Plus (abends, falls nötig)", "xp": 2 },
+    { "task": "Handy an Strom", "xp": 1 },
+    { "task": "Wasserflasche auffüllen", "xp": 1 },
+    { "task": "Mini-Aufräumaktion (2 min – Bett/Flächen)", "xp": 2 },
+    { "task": "Kurze Entspannung (Atmung/Katze/Fokus)", "xp": 2 },
+    { "task": "Licht dimmen / Schlafumgebung vorbereiten", "xp": 1 }
+  ]
+}
+
