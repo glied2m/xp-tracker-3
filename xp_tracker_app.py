@@ -24,22 +24,28 @@ def save_json(path, data):
 
 # --- Daten laden ---
 tasks_data = load_json(TASKS_FILE, {})
-daily_log = load_json(DAILY_LOG_FILE, {})  # Format: {"YYYY-MM-DD": ["Kategorie_index_taskIndex", ...]}
+daily_log = load_json(DAILY_LOG_FILE, {})  # Format: {"YYYY-MM-DD": ["Kategorie_i_j", ...]}
 
 # --- Streamlit Setup ---
 st.set_page_config(page_title="Task XP Tracker", layout="wide")
-st.title("📋 Task XP Tracker")
 
 # --- Datumsauswahl ---
 today = datetime.date.today()
 selected_date = st.sidebar.date_input("Datum auswählen", value=today)
 selected_str = selected_date.isoformat()
 
-# --- Initialisierung Session State ---n
+# --- Session State Initialisierung ---
 if "completed" not in st.session_state:
     st.session_state["completed"] = set(daily_log.get(selected_str, []))
 
-# --- Task-Anzeige und Checkboxen ---
+# --- Kopf mit Speichern-Button ---
+st.title("📋 Task XP Tracker")
+if st.button("💾 Alles speichern"):
+    daily_log[selected_str] = sorted(st.session_state["completed"])
+    save_json(DAILY_LOG_FILE, daily_log)
+    st.success(f"Status für {selected_date:%d.%m.%Y} gespeichert!")
+
+# --- Task-Anzeige ---
 st.header(f"Aufgaben für {selected_date:%d.%m.%Y}")
 for cat, items in tasks_data.items():
     st.subheader(cat)
@@ -52,40 +58,26 @@ for cat, items in tasks_data.items():
         if not new and checked:
             st.session_state["completed"].remove(key)
 
-# --- Speichern Button ---
-if st.button("💾 Änderungen speichern"):
-    daily_log[selected_str] = sorted(st.session_state["completed"])
-    save_json(DAILY_LOG_FILE, daily_log)
-    st.success("Tagesstatus gespeichert!")
-
 # --- XP-Berechnung ---
 def calc_xp(date_str):
-    completed = daily_log.get(date_str, [])
     xp = 0
-    for key in completed:
-        cat, idx = key.rsplit("_",1)
+    for key in daily_log.get(date_str, []):
+        cat, idx = key.rsplit("_", 1)
         xp += tasks_data.get(cat, [])[int(idx)]["xp"]
     return xp
 
 # --- Historie Tabelle ---
 st.header("📊 XP Historie")
-# Erzeuge DataFrame für letzten 30 Tage
-dates = [today - datetime.timedelta(days=x) for x in range(0,30)]
-hist = []
-for d in sorted(dates):
-    ds = d.isoformat()
-    xp = calc_xp(ds)
-    hist.append({"Datum": d, "XP": xp})
+dates = [today - datetime.timedelta(days=i) for i in range(30)]
+hist = [{"Datum": d, "XP": calc_xp(d.isoformat())} for d in sorted(dates)]
+df_hist = pd.DataFrame(hist).set_index("Datum")
+st.dataframe(df_hist, use_container_width=True)
 
-df_hist = pd.DataFrame(hist)
-
-st.dataframe(df_hist.set_index("Datum"), use_container_width=True)
-
-# --- Kategorieliste und Tasks-Datei unten anzeigen ---
+# --- JSON-Editor unten ---
 st.markdown("---")
 st.header("🛠️ Aufgaben-Datei (tasks.json)")
 tasks_json = json.dumps(tasks_data, ensure_ascii=False, indent=2)
-new_tasks_json = st.text_area("Bearbeite Kategorien und Tasks als JSON", tasks_json, height=300)
+new_tasks_json = st.text_area("Bearbeite Kategorien & Tasks", tasks_json, height=300)
 if st.button("📂 tasks.json speichern"):
     try:
         parsed = json.loads(new_tasks_json)
