@@ -50,8 +50,15 @@ if st.sidebar.button("💾 Alles speichern"):
 st.title("📋 Task XP Tracker")
 
 # --- XP-Berechnung für heute ohne String-Splitting ---
-# Erzeuge map von key zu xp für aktuelle Auswahl
+# Erzeuge map von key zu xp für aktuelle Auswahl, überspringe ungültige Einträge
 xp_map = {}
+for cat, items in tasks_data.items():
+    if isinstance(items, list):
+        for idx, task in enumerate(items):
+            if isinstance(task, dict) and "xp" in task:
+                key = f"{cat}_{idx}_{selected_str}"
+                xp_map[key] = task.get("xp", 0)
+
 for cat, items in tasks_data.items():
     for idx, task in enumerate(items):
         key = f"{cat}_{idx}_{selected_str}"
