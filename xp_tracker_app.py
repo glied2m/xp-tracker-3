@@ -25,6 +25,10 @@ def save_json(path, data):
 # --- Daten initialisieren ---
 tasks_data = load_json(TASKS_FILE, {})
 daily_log = load_json(DAILY_LOG_FILE, {})
+# Sicherstellen, dass daily_log.json existiert und initial ein leeres Dict enthält
+if not os.path.exists(DAILY_LOG_FILE):
+    save_json(DAILY_LOG_FILE, {})
+    daily_log = {}
 
 # --- Streamlit Setup ---
 st.set_page_config(page_title="Task List", layout="wide")
@@ -101,4 +105,3 @@ if st.button("📂 tasks.json speichern (neu laden)"):
         st.success("tasks.json gespeichert! Bitte Seite neu laden.")
     except Exception as e:
         st.error(f"Fehler: {e}")
-
