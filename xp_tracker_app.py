@@ -52,15 +52,30 @@ with col2:
 # --- Aufgaben anzeigen ---
 st.subheader(f"Aufgaben für {selected_date:%d.%m.%Y}")
 for category, tasks in tasks_data.items():
-    with st.expander(category):
-        for idx, task in enumerate(tasks):
-            key = f"{category}_{idx}_{selected_str}"
-            checked = key in st.session_state[state_key]
-            new = st.checkbox(task["task"], value=checked, key=key)
-            if new and not checked:
-                st.session_state[state_key].add(key)
-            if not new and checked:
-                st.session_state[state_key].remove(key)
+    # Wenn Wochenplan als Unterkategorien
+    if isinstance(tasks, dict):
+        with st.expander(category):
+            for day, day_tasks in tasks.items():
+                with st.expander(f"{day} ({len(day_tasks)} Tasks)", expanded=False):
+                    for idx, task in enumerate(day_tasks):
+                        key = f"{category}_{day}_{idx}_{selected_str}"
+                        checked = key in st.session_state[state_key]
+                        new = st.checkbox(f"{task['task']} (+{task['xp']} XP)", value=checked, key=key)
+                        if new and not checked:
+                            st.session_state[state_key].add(key)
+                        if not new and checked:
+                            st.session_state[state_key].remove(key)
+    # Reguläre Listen-Kategorie
+    elif isinstance(tasks, list):
+        with st.expander(f"{category} ({len(tasks)} Tasks)", expanded=False):
+            for idx, task in enumerate(tasks):
+                key = f"{category}_{idx}_{selected_str}"
+                checked = key in st.session_state[state_key]
+                new = st.checkbox(f"{task['task']} (+{task['xp']} XP)", value=checked, key=key)
+                if new and not checked:
+                    st.session_state[state_key].add(key)
+                if not new and checked:
+                    st.session_state[state_key].remove(key)
 
 # --- Historie als Tabelle ---
 st.markdown("---")
@@ -79,10 +94,11 @@ st.markdown("---")
 st.subheader("🛠️ Bearbeite tasks.json")
 raw = json.dumps(tasks_data, ensure_ascii=False, indent=2)
 edited = st.text_area("JSON:", raw, height=200)
-if st.button("📂 tasks.json speichern (neu laden) "):
+if st.button("📂 tasks.json speichern (neu laden)"):
     try:
-        parsed = json.loads(editing := edited)
+        parsed = json.loads(edited)
         save_json(TASKS_FILE, parsed)
         st.success("tasks.json gespeichert! Bitte Seite neu laden.")
     except Exception as e:
         st.error(f"Fehler: {e}")
+
