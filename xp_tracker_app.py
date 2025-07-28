@@ -27,7 +27,7 @@ tasks_data = load_json(TASKS_FILE, {})
 daily_log = load_json(DAILY_LOG_FILE, {})  # Format: {"YYYY-MM-DD": ["Kategorie_i_j", ...]}
 
 # --- Streamlit Setup ---
-st.set_page_config(page_title="Task XP Tracker", layout="wide")
+st.set_page_config(page_title="TOO DOOO Felix", layout="wide")
 
 # --- Sidebar: Datum & Save ---
 st.sidebar.title("Einstellungen")
